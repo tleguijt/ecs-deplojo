@@ -157,6 +157,14 @@ class TaskDefinition:
     def network_mode(self, value):
         self._data["networkMode"] = value
 
+    @property
+    def network_configuration(self) -> typing.Optional[dict]:
+        return getattr(self, "networkConfiguration")
+    
+    @network_configuration.setter
+    def network_configuration(self, value):
+        self.networkConfiguration = value
+
 
 def generate_task_definitions(
     config, template_vars, base_path, output_path=None
@@ -183,6 +191,8 @@ def generate_task_definitions(
             env_vars.update(config["environment_groups"][env_group])
 
         overrides = info.get("overrides", {})
+        network_configuration = info.get("network_configuration")
+
         definition = generate_task_definition(
             filename=info["template"],
             environment=env_vars,
@@ -193,6 +203,7 @@ def generate_task_definitions(
             task_role_arn=info.get("task_role_arn"),
             secrets=config.get("secrets", {}),
             execution_role_arn=info.get("execution_role_arn"),
+            network_configuration=network_configuration,
         )
         if output_path:
             write_task_definition(name, definition, output_path)
@@ -211,6 +222,7 @@ def generate_task_definition(
     task_role_arn=None,
     secrets: typing.Dict[str, str] = {},
     execution_role_arn=None,
+    network_configuration=None,
 ) -> TaskDefinition:
     """Generate the task definitions."""
     if base_path:
@@ -225,6 +237,9 @@ def generate_task_definition(
 
     if execution_role_arn:
         task_definition.execution_role_arn = execution_role_arn
+
+    if network_configuration:
+        task_definition.network_configuration = network_configuration
 
     # If no hostname is specified for the container we set it ourselves to
     # `{family}-{container-name}-{num}`

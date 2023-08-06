@@ -222,6 +222,7 @@ def run_tasks(connection, cluster_name, task_definitions, tasks) -> None:
             },
             startedBy="ecs-deplojo",
             count=1,
+            networkConfiguration=task_def.network_configuration,
         )
         if response.get("failures"):
             logger.error("Error starting one-off task: %r", response["failures"])
